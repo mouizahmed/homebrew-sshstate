@@ -1,0 +1,101 @@
+name: update formula
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # sshstate is public, so its releases are readable with this
+      # repository's own token. Pulling rather than being pushed to is what
+      # keeps a cross-repository credential out of the picture entirely.
+      - name: rewrite the formula from the latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          UPSTREAM: mouizahmed/sshstate
+        run: |
+          set -euo pipefail
+          tag="$(gh release view --repo "$UPSTREAM" --json tagName --jq .tagName)"
+          version="${tag#v}"
+
+          work="$(mktemp -d)"
+          gh release download "$tag" --repo "$UPSTREAM" --pattern SHA256SUMS --dir "$work"
+
+          sha_for() {
+            local target="sshstate_${version}_$1.tar.gz"
+            local line
+            line="$(grep " \+${target}\$" "$work/SHA256SUMS" || true)"
+            if [ -z "$line" ]; then
+              echo "release $tag has no $target" >&2
+              exit 1
+            fi
+            echo "${line%% *}"
+          }
+
+          darwin_arm64="$(sha_for darwin_arm64)"
+          darwin_amd64="$(sha_for darwin_amd64)"
+          linux_arm64="$(sha_for linux_arm64)"
+          linux_amd64="$(sha_for linux_amd64)"
+          base="https://github.com/${UPSTREAM}/releases/download/${tag}"
+
+          mkdir -p Formula
+          cat > Formula/sshstate.rb <<RUBY
+          class Sshstate < Formula
+            desc "Synchronize an SSH environment across machines"
+            homepage "https://github.com/${UPSTREAM}"
+            version "${version}"
+            license "AGPL-3.0-only"
+
+            on_macos do
+              on_arm do
+                url "${base}/sshstate_${version}_darwin_arm64.tar.gz"
+                sha256 "${darwin_arm64}"
+              end
+              on_intel do
+                url "${base}/sshstate_${version}_darwin_amd64.tar.gz"
+                sha256 "${darwin_amd64}"
+              end
+            end
+
+            on_linux do
+              on_arm do
+                url "${base}/sshstate_${version}_linux_arm64.tar.gz"
+                sha256 "${linux_arm64}"
+              end
+              on_intel do
+                url "${base}/sshstate_${version}_linux_amd64.tar.gz"
+                sha256 "${linux_amd64}"
+              end
+            end
+
+            def install
+              bin.install "sshstate"
+            end
+
+            test do
+              assert_match version.to_s, shell_output("#{bin}/sshstate version")
+            end
+          end
+          RUBY
+
+      - name: commit when it changed
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- Formula/sshstate.rb; then
+            echo "formula already matches the latest release"
+            exit 0
+          fi
+          version="$(sed -n 's/^  version "\(.*\)"$/\1/p' Formula/sshstate.rb)"
+          git config user.name "Mouiz Ahmed"
+          git config user.email "mouiza@my.yorku.ca"
+          git add Formula/sshstate.rb
+          git commit -m "sshstate ${version}"
+          git push
