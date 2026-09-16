@@ -89,13 +89,20 @@ jobs:
       - name: commit when it changed
         run: |
           set -euo pipefail
-          if git diff --quiet -- Formula/sshstate.rb; then
+          test -s Formula/sshstate.rb
+
+          git config user.name "Mouiz Ahmed"
+          git config user.email "mouiza@my.yorku.ca"
+
+          # Staged, not working-tree: git diff ignores untracked files, so on
+          # the first run it reported no change and this step exited green
+          # having written nothing.
+          git add Formula/sshstate.rb
+          if git diff --cached --quiet -- Formula/sshstate.rb; then
             echo "formula already matches the latest release"
             exit 0
           fi
           version="$(sed -n 's/^  version "\(.*\)"$/\1/p' Formula/sshstate.rb)"
-          git config user.name "Mouiz Ahmed"
-          git config user.email "mouiza@my.yorku.ca"
-          git add Formula/sshstate.rb
+          test -n "$version"
           git commit -m "sshstate ${version}"
           git push
