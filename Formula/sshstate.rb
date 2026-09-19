@@ -1,27 +1,27 @@
 class Sshstate < Formula
   desc "Synchronize an SSH environment across machines"
   homepage "https://github.com/mouizahmed/sshstate"
-  license "AGPL-3.0-only"
+  license "MIT"
 
   on_macos do
     on_arm do
-      url "https://github.com/mouizahmed/sshstate/releases/download/v0.1.4/sshstate_0.1.4_darwin_arm64.tar.gz"
-      sha256 "c7da32edcc2b4211a97a076e4513d2c956ffd769398248b9638a9b68f0f7b567"
+      url "https://github.com/mouizahmed/sshstate/releases/download/v0.1.5/sshstate_0.1.5_darwin_arm64.tar.gz"
+      sha256 "18fb3d004344883171659849b8fa4b67a3d33c5b4d0f20c4592ad678a0d9189d"
     end
     on_intel do
-      url "https://github.com/mouizahmed/sshstate/releases/download/v0.1.4/sshstate_0.1.4_darwin_amd64.tar.gz"
-      sha256 "32a6f9c76d7c1d09b2c19ca2e29238b21900a881f4e11f2062835e66c38b2bad"
+      url "https://github.com/mouizahmed/sshstate/releases/download/v0.1.5/sshstate_0.1.5_darwin_amd64.tar.gz"
+      sha256 "eb26bbd39aec200ab84706c498cdf0edcb91604d75c5f916c7d6e42b1fbdbf4e"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://github.com/mouizahmed/sshstate/releases/download/v0.1.4/sshstate_0.1.4_linux_arm64.tar.gz"
-      sha256 "5aeb2501bef7e6119f0e427024538f4f2b24cd4fbe68db4f556672f1f848ea66"
+      url "https://github.com/mouizahmed/sshstate/releases/download/v0.1.5/sshstate_0.1.5_linux_arm64.tar.gz"
+      sha256 "0c815bb8e3421e91e625d82b20716c3c5db8c0948a63816475a1781d933618d1"
     end
     on_intel do
-      url "https://github.com/mouizahmed/sshstate/releases/download/v0.1.4/sshstate_0.1.4_linux_amd64.tar.gz"
-      sha256 "895e4bf26a15e64a70fd88b7263702db8a1763ac68ab56043550e48b99627551"
+      url "https://github.com/mouizahmed/sshstate/releases/download/v0.1.5/sshstate_0.1.5_linux_amd64.tar.gz"
+      sha256 "f584085e9687fe455eb4b302959d29c07aaea6ce263239cd3c8c020b1d2be48b"
     end
   end
 
