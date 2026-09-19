@@ -12,7 +12,7 @@ jobs:
   update:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # sshstate is public, so its releases are readable with this
       # repository's own token. Pulling rather than being pushed to is what
