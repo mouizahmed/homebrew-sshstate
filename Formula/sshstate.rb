@@ -1,7 +1,6 @@
 class Sshstate < Formula
   desc "Synchronize an SSH environment across machines"
   homepage "https://github.com/mouizahmed/sshstate"
-  version "0.1.4"
   license "AGPL-3.0-only"
 
   on_macos do

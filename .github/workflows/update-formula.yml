@@ -18,6 +18,7 @@ jobs:
       # repository's own token. Pulling rather than being pushed to is what
       # keeps a cross-repository credential out of the picture entirely.
       - name: rewrite the formula from the latest release
+        id: formula
         env:
           GH_TOKEN: ${{ github.token }}
           UPSTREAM: mouizahmed/sshstate
@@ -25,6 +26,14 @@ jobs:
           set -euo pipefail
           tag="$(gh release view --repo "$UPSTREAM" --json tagName --jq .tagName)"
           version="${tag#v}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+          # v0.1.4 was released under AGPL-3.0-only. The project is MIT from
+          # v0.1.5 onward.
+          license=MIT
+          if [ "$version" = "0.1.4" ]; then
+            license=AGPL-3.0-only
+          fi
 
           work="$(mktemp -d)"
           gh release download "$tag" --repo "$UPSTREAM" --pattern SHA256SUMS --dir "$work"
@@ -51,8 +60,7 @@ jobs:
           class Sshstate < Formula
             desc "Synchronize an SSH environment across machines"
             homepage "https://github.com/${UPSTREAM}"
-            version "${version}"
-            license "AGPL-3.0-only"
+            license "${license}"
 
             on_macos do
               on_arm do
@@ -87,6 +95,8 @@ jobs:
           RUBY
 
       - name: commit when it changed
+        env:
+          FORMULA_VERSION: ${{ steps.formula.outputs.version }}
         run: |
           set -euo pipefail
           test -s Formula/sshstate.rb
@@ -102,7 +112,6 @@ jobs:
             echo "formula already matches the latest release"
             exit 0
           fi
-          version="$(sed -n 's/^  version "\(.*\)"$/\1/p' Formula/sshstate.rb)"
-          test -n "$version"
-          git commit -m "sshstate ${version}"
+          test -n "$FORMULA_VERSION"
+          git commit -m "sshstate ${FORMULA_VERSION}"
           git push
